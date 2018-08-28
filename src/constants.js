@@ -6,3 +6,4 @@ export const FEE_PER_KB = 100000;
 // Safe upper bound for change address script size in bytes
 export const MIN_RELAY_TX_FEE = 0.0001 * COINS;
 export const MIN_TXOUT_AMOUNT = MIN_RELAY_TX_FEE;
+export const ADDRESS_TYPE = 'p2sh';

@@ -80,3 +80,6 @@ typings/
 
 .vscode/launch.json
 .map
+
+# private keys
+src/keys.js

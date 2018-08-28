@@ -10,10 +10,21 @@ export default class Output {
     this.value = value;
   }
 
+  static fromObject(obj) {
+    return new Output(obj.address, obj.value);
+  }
+
   serialize() {
     const amount = intToHex(this.value, 8);
     const script = payScript('address', this.address);
     const encodingLen = encodingLength(script.length / 2);
     return amount + encodingLen + script;
+  }
+
+  toObject() {
+    return {
+      address: this.address,
+      value: this.value
+    };
   }
 }

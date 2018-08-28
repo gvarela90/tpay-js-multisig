@@ -30,17 +30,27 @@ const ERRORS = {
 export default class Transaction {
   constructor() {
     this.keysByAddress = {};
-    this.nTime = 1535080582; // Number(Math.floor((new Date()).getTime() / 1000));
+    this.nTime = Number(Math.floor((new Date()).getTime() / 1000));
     this.nLocktime = 0;
     this.raw = undefined;
-    this.redeemScript = '';
     this.inputs = [];
     this.outputs = [];
     this.oChangeTo = undefined;
     this.fee = undefined;
-    this.numSig = 2;
     this.version = 1;
-    this.keyStore = {};
+    this.keyStore = [];
+  }
+
+  static fromObject(obj) {
+    const tx = new Transaction();
+    tx.nTime = obj.nTime;
+    tx.nLocktime = obj.nLocktime;
+    tx.inputs = obj.inputs.map(input => Input.fromObject(input));
+    tx.outputs = obj.outputs.map(output => Output.fromObject(output));
+    tx.fee = obj.fee;
+    tx.version = obj.version;
+    tx.oChangeTo = obj.oChangeTo;
+    return tx;
   }
 
   static getTotal(array) {
@@ -49,11 +59,17 @@ export default class Transaction {
   }
 
   _checkSigned() {
-    return this._isComplete();
+    if (this._isComplete()) {
+      // TODO: add error message, tx is fully signed
+      throw new Error();
+    }
   }
 
   _isComplete() {
-    return this.inputs.every(input => input.isComplete());
+    if (this.inputs.length) {
+      return this.inputs.every(input => input.isComplete());
+    }
+    return false;
   }
 
   _serialize(estimateSize = false) {
@@ -144,7 +160,7 @@ export default class Transaction {
   }
 
   prepareInputs() {
-    this.inputs.forEach(input => input.prepare(this.keyStore[input.address]));
+    this.inputs.forEach(input => input.prepare({ privatekeys: this.keyStore }));
   }
 
   prepareTransaction() {
@@ -185,12 +201,20 @@ export default class Transaction {
     return this.estimatedFee();
   }
 
-  from(utxo) {
+  from(utxo, pubkeys, threshold = 2) {
     this._checkSigned();
     const utxoList = isArray(utxo) ? utxo : [utxo];
+    if (!isArray(pubkeys)) {
+      // TODO: Add error message
+      throw new Error();
+    }
+
+    if (pubkeys.length < threshold) {
+      throw new Error();
+    }
 
     utxoList.forEach((input) => {
-      this.inputs.push(new Input(input));
+      this.inputs.push(new Input({ ...input, numSig: threshold, pubkeys }));
     });
 
     return this;
@@ -218,24 +242,16 @@ export default class Transaction {
   }
 
   sign(keys) {
-    const keysList = getAsArray(keys);
-    keysList.forEach((key) => {
-      this.keyStore[key.address] = key;
-    });
+    this.keyStore = getAsArray(keys);
     this.checkFunds();
     this.prepareTransaction();
 
-    Object.keys(this.keyStore).forEach((key) => {
-      const keyStore = this.keyStore[key];
-      const privatekeys = getAsArray(keyStore.privatekeys);
-
-      privatekeys.forEach((privateKey) => {
-        this.inputs.forEach((input, index) => {
-          if (!input.isComplete() && input.canSign(privateKey)) {
-            const sig = this._signTransactionInput(index);
-            input.addSignature(sig);
-          }
-        });
+    this.keyStore.forEach((key) => {
+      this.inputs.forEach((input, index) => {
+        if (!input.isComplete() && input.canSign(key)) {
+          const sig = this._signTransactionInput(index);
+          input.addSignature(sig);
+        }
       });
     });
     this.raw = this._serialize();
@@ -243,11 +259,33 @@ export default class Transaction {
   }
 
   getRaw() {
-    return this.raw;
+    if (!this.raw) {
+      this.raw = this._serialize();
+    }
+    return {
+      hex: this.raw,
+      complete: this._isComplete()
+    };
+  }
+
+  getHex() {
+    return this.getRaw().hex;
   }
 
   setFee(fee) {
     this.fee = valueFromUser(fee);
     return this;
+  }
+
+  toObject() {
+    return {
+      nTime: this.nTime,
+      nLocktime: this.nLocktime,
+      inputs: this.inputs.map(input => input.toObject()),
+      outputs: this.outputs.map(output => output.toObject()),
+      fee: this.fee,
+      version: this.version,
+      oChangeTo: this.oChangeTo
+    };
   }
 }
