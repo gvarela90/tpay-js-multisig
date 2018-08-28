@@ -32,14 +32,10 @@ tx.from(utxo, pubKeysArray, 2)
     .changeTo('t6B9Z9CryWGj8RLFiBwSwBqe9KbDYNkDyW')
     .setFee(0.0001)
     .sign(privateKey1);
-
 printTx(tx);
 
 const obj = tx.toObject();
 
 const tx2 = Transaction.fromObject(obj);
 tx2.sign(privateKey2);
-
-
-// tx.sign(privateKey2);
 printTx(tx2);

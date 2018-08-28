@@ -121,7 +121,12 @@ export default class Input {
   }
 
   addSignature(signature) {
-    this.signatures.push(signature);
+    const index = this.signatures.indexOf(undefined);
+    if (index !== -1) {
+      this.signatures[index] = signature;
+    } else {
+      this.signatures.push(signature);
+    }
   }
 
   toObject() {
