@@ -17,7 +17,7 @@ Private keys must be in hex (64 characters).
 ## Spend from a 2-of-3 multisig P2SH address
 
 ```javascript
-const Transaction = require('tpay-js-multisig);
+const Transaction = require('tpay-js-multisig');
 
 const publicKeys = ['<public-key-1>', '<public-key-1>', '<public-key-1>'];
 
@@ -47,7 +47,7 @@ try {
 ## Get transaction object representation
 
 ```javascript
-const Transaction = require('tpay-js-multisig);
+const Transaction = require('tpay-js-multisig');
 
 const publicKeys = ['<public-key-1>', '<public-key-1>', '<public-key-1>'];
 
@@ -74,7 +74,7 @@ try {
 ## Spend from transaction object representation
 
 ```javascript
-const Transaction = require('tpay-js-multisig);
+const Transaction = require('tpay-js-multisig');
 
 const publicKeys = ['<public-key-1>', '<public-key-1>', '<public-key-1>'];
 
