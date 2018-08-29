@@ -10,13 +10,16 @@ import {
   intToHex,
   encodingLength,
   pushScript,
-  getAsArray
+  getAsArray,
+  isP2SH
 } from './utils';
 import { MULTISIG_APPLICATION, ADDRESS_TYPE } from './constants';
+import { TPayError, ERROR_MESSAGES } from './errors';
 
 export default class Input {
   constructor(data) {
     // TODO: To validate that address is p2sh type.
+    Input.checkMultiSigAddress(data.address);
     this.type = ADDRESS_TYPE;
     this.numSig = data.numSig || MULTISIG_APPLICATION[0];
     this.signatures = data.signatures || Array(this.numSig + 1).fill(undefined);
@@ -33,6 +36,12 @@ export default class Input {
 
   static fromObject(obj) {
     return new Input(obj);
+  }
+
+  static checkMultiSigAddress(address) {
+    if (!isP2SH(address)) {
+      throw new TPayError(ERROR_MESSAGES.p2shAddress.format(address));
+    }
   }
 
   _getSigLists(estimateSize = false) {
@@ -52,7 +61,7 @@ export default class Input {
   }
 
   prepare(data) {
-    // TODO: To validate that address is p2sh type.
+    Input.checkMultiSigAddress(this.address);
     this.pubkeys = data.pubkeys || this.pubkeys;
     this.redeemScript = data.redeemScript || this.redeemScript;
     this.keys = getAsArray(data.privatekeys || this.keys);
@@ -113,8 +122,7 @@ export default class Input {
         );
         this.redeemScript = redeemScript.toBuffer().toString('hex');
       } else {
-        // TODO: Fix error
-        throw new Error('');
+        throw new TPayError(ERROR_MESSAGES.invalidPubKeys.format(this.numSig));
       }
     }
     return this.redeemScript;

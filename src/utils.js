@@ -2,7 +2,7 @@ import coinstring from 'coinstring';
 import crypto from 'crypto';
 import isArray from 'lodash/isArray';
 import { Buffer } from 'buffer';
-import { COINS } from './constants';
+import { COINS, P2SH_TYPE } from './constants';
 
 const bcAddressToHash160 = (address) => {
   const base58 = coinstring.decode(address);
@@ -76,7 +76,7 @@ export const payScript = (outputType, address) => {
     script = '76a9';
     script += pushScript(hash160);
     script += '88ac';
-  } else if ([126].includes(addrtype)) {
+  } else if ([P2SH_TYPE].includes(addrtype)) {
     script = 'a9';
     script += pushScript(hash160);
     script += '87';
@@ -85,4 +85,9 @@ export const payScript = (outputType, address) => {
   }
 
   return script;
+};
+
+export const isP2SH = (address) => {
+  const [addrtype] = bcAddressToHash160(address);
+  return addrtype === P2SH_TYPE;
 };

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import Transaction from './transaction';
+import Transaction from '.';
 import bitcore from 'bitcore-lib';
 import { privateKey1, privateKey2 } from './keys';
 
@@ -27,15 +27,19 @@ const utxo = {
 };
 
 const tx = new Transaction();
-tx.from(utxo, pubKeysArray, 2)
-    .to('TMUKGYVZe2pY5jxVqnRYkNSa6yE79cB18s', 0.001)
-    .changeTo('t6B9Z9CryWGj8RLFiBwSwBqe9KbDYNkDyW')
-    .setFee(0.0001)
-    .sign(privateKey1);
-printTx(tx);
+try {
+    tx.from(utxo, pubKeysArray, 2)
+        .to('TMUKGYVZe2pY5jxVqnRYkNSa6yE79cB18s', 0.0001)
+        .changeTo('t6B9Z9CryWGj8RLFiBwSwBqe9KbDYNkDyW')
+        .setFee(0.0001)
+        .sign(privateKey1);
+    printTx(tx);
 
-const obj = tx.toObject();
+    const obj = tx.toObject();
 
-const tx2 = Transaction.fromObject(obj);
-tx2.sign(privateKey2);
-printTx(tx2);
+    const tx2 = Transaction.fromObject(obj);
+    tx2.sign(privateKey2);
+    printTx(tx2);
+} catch (e) {
+    console.log('Error:', e.message);
+}

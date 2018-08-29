@@ -9,7 +9,8 @@ import {
   encodingLength,
   valueFromUser,
   sha256sha256,
-  getAsArray
+  getAsArray,
+  valueForUser
 } from './utils';
 
 import {
@@ -20,12 +21,7 @@ import {
 } from './constants';
 
 
-const ERRORS = {
-  signed: 'Transaction already signed',
-  notFunds: 'Not enough funds',
-  invalidUnspentValue: 'Unable to calculate the unspent value.',
-  valueTooSmall: `Send amount too small, min value allow ${MIN_TXOUT_AMOUNT}`
-};
+import { TPayError, ERROR_MESSAGES } from './errors';
 
 export default class Transaction {
   constructor() {
@@ -60,8 +56,7 @@ export default class Transaction {
 
   _checkSigned() {
     if (this._isComplete()) {
-      // TODO: add error message, tx is fully signed
-      throw new Error();
+      throw new TPayError(ERROR_MESSAGES.signed);
     }
   }
 
@@ -116,19 +111,19 @@ export default class Transaction {
   checkFunds() {
     const unspendValue = this.getUnspentValue();
     if (this.getUnspentValue() < 0) {
-      throw (ERRORS.notFunds);
+      throw new TPayError(ERROR_MESSAGES.notFunds);
     }
 
     const fee = this.getFee();
     const changeAmount = unspendValue - fee;
     if (changeAmount < 0) {
-      throw new Error(`${ERRORS.notFunds}. \nFEE=${fee} \nUNSPENTVALUE=${unspendValue} \nMISSING=${Math.abs(changeAmount)}`);
+      throw new TPayError(`${ERROR_MESSAGES.notFunds}. \nFEE=${fee} \nUNSPENTVALUE=${unspendValue} \nMISSING=${Math.abs(changeAmount)}`);
     }
   }
 
   checkOutputsTotal() {
     if (Transaction.getTotal(this.outputs) < MIN_TXOUT_AMOUNT) {
-      throw (ERRORS.valueTooSmall);
+      throw new TPayError(ERROR_MESSAGES.valueTooSmall.format(MIN_TXOUT_AMOUNT));
     }
   }
 
@@ -175,7 +170,7 @@ export default class Transaction {
     const outputs = Transaction.getTotal(this.outputs);
     const result = inputs - outputs;
     if (Number.isNaN(result)) {
-      throw new Error(ERRORS.invalidUnspentValue);
+      throw new TPayError(ERROR_MESSAGES.invalidUnspentValue);
     }
     return result;
   }
@@ -204,13 +199,8 @@ export default class Transaction {
   from(utxo, pubkeys, threshold = 2) {
     this._checkSigned();
     const utxoList = isArray(utxo) ? utxo : [utxo];
-    if (!isArray(pubkeys)) {
-      // TODO: Add error message
-      throw new Error();
-    }
-
-    if (pubkeys.length < threshold) {
-      throw new Error();
+    if (!isArray(pubkeys) || pubkeys.length < threshold) {
+      throw new TPayError(ERROR_MESSAGES.invalidPubKeys.format(threshold));
     }
 
     utxoList.forEach((input) => {
@@ -274,6 +264,9 @@ export default class Transaction {
 
   setFee(fee) {
     this.fee = valueFromUser(fee);
+    if (this.fee < MIN_RELAY_TX_FEE) {
+      throw new TPayError(ERROR_MESSAGES.invalidFeeAmount.format(valueForUser(MIN_RELAY_TX_FEE)));
+    }
     return this;
   }
 
