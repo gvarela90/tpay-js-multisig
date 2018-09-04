@@ -86,7 +86,7 @@ export default class Input {
     const signature = this.key.sign(hash, undefined, { canonical: true });
     const derSign = signature.toDER('hex');
     if (!this.key.verify(hash, derSign)) {
-      throw new Error('Invalid signature');
+      throw new TPayError(ERROR_MESSAGES.invalidSignature);
     }
     return `${derSign}01`;
   }
@@ -129,6 +129,8 @@ export default class Input {
     const index = this.pubkeys.indexOf(this.key.getPublic(true, 'hex'));
     if (index !== -1 && this.signatures.length > index) {
       this.signatures[index] = signature;
+    } else if (index === -1) {
+      throw new TPayError(ERROR_MESSAGES.invalidPrivateKey);
     } else {
       this.signatures.push(signature);
     }

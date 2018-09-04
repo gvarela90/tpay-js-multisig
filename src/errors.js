@@ -6,6 +6,7 @@ export const ERROR_MESSAGES = {
   invalidSignature: 'Invalid signature',
   p2shAddress: '{0} is not a P2SH address',
   invalidPubKeys: 'Public keys must be an array of at least {0} keys',
+  invalidPrivateKey: 'Invalid private key',
   invalidFeeAmount: 'Fee must be greater than or equal to {0}'
 };
 
