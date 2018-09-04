@@ -17,7 +17,8 @@ import {
   PARTIAL_TXN_HEADER_MAGIC,
   MIN_TXOUT_AMOUNT,
   FEE_PER_KB,
-  MIN_RELAY_TX_FEE
+  MIN_RELAY_TX_FEE,
+  FEERATE_MAX_DYNAMIC
 } from './constants';
 
 
@@ -182,9 +183,8 @@ export default class Transaction {
   estimatedFee() {
     const estimatedSize = this.estimatedSize();
     let fee = Math.ceil(estimatedSize / 1000) * FEE_PER_KB;
-    if (fee < MIN_RELAY_TX_FEE) {
-      fee = MIN_RELAY_TX_FEE;
-    }
+    fee = Math.min(FEERATE_MAX_DYNAMIC, fee);
+    fee = Math.max(MIN_RELAY_TX_FEE, fee);
     return fee;
   }
 
