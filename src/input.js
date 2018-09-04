@@ -116,10 +116,7 @@ export default class Input {
       if (
         isArray(this.pubkeys) && this.pubkeys.length === (this.numSig + 1)
       ) {
-        const redeemScript = Script.buildMultisigOut(
-          this.pubkeys,
-          MULTISIG_APPLICATION[0]
-        );
+        const redeemScript = Script.buildMultisigOut(this.pubkeys, this.numSig);
         this.redeemScript = redeemScript.toBuffer().toString('hex');
       } else {
         throw new TPayError(ERROR_MESSAGES.invalidPubKeys.format(this.numSig));
@@ -129,8 +126,8 @@ export default class Input {
   }
 
   addSignature(signature) {
-    const index = this.signatures.indexOf(undefined);
-    if (index !== -1) {
+    const index = this.pubkeys.indexOf(this.key.getPublic(true, 'hex'));
+    if (index !== -1 && this.signatures.length > index) {
       this.signatures[index] = signature;
     } else {
       this.signatures.push(signature);

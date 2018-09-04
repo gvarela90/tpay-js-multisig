@@ -4,7 +4,7 @@ import isArray from 'lodash/isArray';
 import { Buffer } from 'buffer';
 import { COINS, P2SH_TYPE } from './constants';
 
-const bcAddressToHash160 = (address) => {
+export const bcAddressToHash160 = (address) => {
   const base58 = coinstring.decode(address);
   const type = base58[0];
   const hash160 = base58.slice(1, 25);

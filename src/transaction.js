@@ -181,6 +181,7 @@ export default class Transaction {
 
   estimatedFee() {
     const estimatedSize = this.estimatedSize();
+    console.log(estimatedSize);
     let fee = Math.ceil(estimatedSize / 1000) * FEE_PER_KB;
     if (fee < MIN_RELAY_TX_FEE) {
       fee = MIN_RELAY_TX_FEE;
@@ -203,8 +204,10 @@ export default class Transaction {
       throw new TPayError(ERROR_MESSAGES.invalidPubKeys.format(threshold));
     }
 
+    const cpPubkeys = pubkeys.slice();
+    cpPubkeys.sort();
     utxoList.forEach((input) => {
-      this.inputs.push(new Input({ ...input, numSig: threshold, pubkeys }));
+      this.inputs.push(new Input({ ...input, numSig: threshold, pubkeys: cpPubkeys }));
     });
 
     return this;
