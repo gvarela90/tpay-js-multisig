@@ -24,7 +24,10 @@ const inputs = [
 
 const tx = new Transaction()
   .from(inputs)
-  .to('DQD44a6m4u8rvngXMczDSf7C6gtsJBHsvt', 0.2)
+  // .to('DQD44a6m4u8rvngXMczDSf7C6gtsJBHsvt', 0.2)
+  .to('TKdah98izEwFFfWkY78Egs3gdbgn4b7K7K', 0.0001)
+  .to('TM9bW7TMT115YkhBUJ8Gnsax8dQymYJiPM', 0.0001)
+  .to('TNB9Fgs1bUmkRbhmuK4tbcRZT37dbQYHQt', 0.0001)
   .changeTo('D8CxB96MkFz25jSrvhaf8M4MCx9XovpMr5')
   .sign(privateKey);
 // import {inputScript, serialize, intToHex, signHex} from './helpers';

@@ -214,14 +214,12 @@ export default class Transaction {
 
   to(address, value) {
     this._checkSigned();
-    if (!this.outputs.length) {
-      this.outputs.push(new Output(address, valueFromUser(value)));
-      try {
-        this.checkOutputsTotal();
-      } catch (error) {
-        this.outputs.pop();
-        throw error;
-      }
+    this.outputs.push(new Output(address, valueFromUser(value)));
+    try {
+      this.checkOutputsTotal();
+    } catch (error) {
+      this.outputs.pop();
+      throw error;
     }
 
     return this;

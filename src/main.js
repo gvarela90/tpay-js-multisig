@@ -29,7 +29,10 @@ const utxo = {
 const tx = new Transaction();
 try {
     tx.from(utxo, pubKeysArray, 2)
-        .to('TMUKGYVZe2pY5jxVqnRYkNSa6yE79cB18s', 0.0001)
+        // .to('TMUKGYVZe2pY5jxVqnRYkNSa6yE79cB18s', 0.0001)
+        .to('TKdah98izEwFFfWkY78Egs3gdbgn4b7K7K', 0.0001)
+        .to('TM9bW7TMT115YkhBUJ8Gnsax8dQymYJiPM', 0.0001)
+        .to('TNB9Fgs1bUmkRbhmuK4tbcRZT37dbQYHQt', 0.0001)
         .changeTo('t6B9Z9CryWGj8RLFiBwSwBqe9KbDYNkDyW')
         // .setFee(0.0001)
         .sign(privateKey2);
@@ -39,6 +42,7 @@ try {
 
     const tx2 = Transaction.fromObject(obj);
     tx2.sign(privateKey1);
+    console.log('\n==fromObject==');
     printTx(tx2);
 } catch (e) {
     console.log('Error:', e.message);
