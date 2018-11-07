@@ -1,3 +1,4 @@
+import { Decimal } from 'decimal.js';
 import coinstring from 'coinstring';
 import crypto from 'crypto';
 import isArray from 'lodash/isArray';
@@ -13,9 +14,9 @@ export const bcAddressToHash160 = (address) => {
 
 export const getAsArray = value => (isArray(value) ? value : [value]);
 
-export const valueFromUser = amount => amount * COINS;
+export const valueFromUser = amount => new Decimal(amount).times(COINS);
 
-export const valueForUser = amount => amount / COINS;
+export const valueForUser = amount => new Decimal(amount).dividedBy(COINS);
 
 const sha256 = buf => crypto.createHash('sha256').update(buf).digest();
 

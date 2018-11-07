@@ -20,6 +20,7 @@
     "buffer": "^5.1.0",
     "coinstring": "^2.3.0",
     "crypto": "^1.0.1",
+    "decimal.js": "^10.0.1",
     "electrum-client": "0.0.6",
     "elliptic": "^6.4.0",
     "loadash": "^1.0.0",

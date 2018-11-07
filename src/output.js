@@ -1,3 +1,4 @@
+import { Decimal } from 'decimal.js';
 import {
   intToHex,
   encodingLength,
@@ -7,7 +8,7 @@ import {
 export default class Output {
   constructor(address, value) {
     this.address = address;
-    this.value = value;
+    this.value = new Decimal(value);
   }
 
   static fromObject(obj) {
@@ -15,7 +16,7 @@ export default class Output {
   }
 
   serialize() {
-    const amount = intToHex(this.value, 8);
+    const amount = intToHex(this.value.toNumber(), 8);
     const script = payScript('address', this.address);
     const encodingLen = encodingLength(script.length / 2);
     return amount + encodingLen + script;
@@ -24,7 +25,7 @@ export default class Output {
   toObject() {
     return {
       address: this.address,
-      value: this.value
+      value: this.value.toNumber()
     };
   }
 }

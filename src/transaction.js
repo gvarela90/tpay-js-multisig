@@ -1,9 +1,11 @@
 /* eslint no-underscore-dangle: 0 */
+import { Decimal } from 'decimal.js';
 import { Buffer } from 'buffer';
 import isArray from 'lodash/isArray';
 import isUndefined from 'lodash/isUndefined';
 import Input from './input';
 import Output from './output';
+
 import {
   intToHex,
   encodingLength,
@@ -44,15 +46,15 @@ export default class Transaction {
     tx.nLocktime = obj.nLocktime;
     tx.inputs = obj.inputs.map(input => Input.fromObject(input));
     tx.outputs = obj.outputs.map(output => Output.fromObject(output));
-    tx.fee = obj.fee;
+    tx.fee = new Decimal(obj.fee);
     tx.version = obj.version;
     tx.oChangeTo = obj.oChangeTo;
     return tx;
   }
 
   static getTotal(array) {
-    const reducer = (accumulator, item) => accumulator + item.value;
-    return array.reduce(reducer, 0);
+    const reducer = (accumulator, item) => item.value.plus(accumulator);
+    return new Decimal(array.reduce(reducer, 0));
   }
 
   _checkSigned() {
@@ -111,7 +113,7 @@ export default class Transaction {
 
   checkFunds() {
     const unspendValue = this.getUnspentValue();
-    if (this.getUnspentValue() < 0) {
+    if (this.getUnspentValue().lessThan(0)) {
       throw new TPayError(ERROR_MESSAGES.notFunds);
     }
 
@@ -134,8 +136,8 @@ export default class Transaction {
     if (isUndefined(this.oChangeTo)) {
       fee = this.getUnspentValue();
     } else {
-      let changeAmount = this.getUnspentValue() - fee;
-      if (changeAmount > 0) {
+      let changeAmount = this.getUnspentValue().minus(fee);
+      if (changeAmount.greaterThan(0)) {
         this.outputs.push(new Output(this.oChangeTo, changeAmount));
 
         // recompute fee including change output and check
@@ -145,8 +147,8 @@ export default class Transaction {
         // remove change output in order to get the correct unspent amount
         this.outputs.pop();
 
-        changeAmount = this.getUnspentValue() - this.getFee();
-        if (changeAmount > 0) {
+        changeAmount = this.getUnspentValue().minus(this.getFee());
+        if (changeAmount.greaterThan(0)) {
           this.outputs.push(new Output(this.oChangeTo, changeAmount));
         }
       }
@@ -169,7 +171,7 @@ export default class Transaction {
   getUnspentValue() {
     const inputs = Transaction.getTotal(this.inputs);
     const outputs = Transaction.getTotal(this.outputs);
-    const result = inputs - outputs;
+    const result = inputs.minus(outputs);
     if (Number.isNaN(result)) {
       throw new TPayError(ERROR_MESSAGES.invalidUnspentValue);
     }
@@ -177,20 +179,20 @@ export default class Transaction {
   }
 
   estimatedSize() {
-    return Number(this._serialize(true).length / 2);
+    return new Decimal(this._serialize(true).length / 2);
   }
 
   estimatedFee() {
     const estimatedSize = this.estimatedSize();
-    let fee = Math.ceil(estimatedSize / 1000) * FEE_PER_KB;
-    fee = Math.min(FEERATE_MAX_DYNAMIC, fee);
-    fee = Math.max(MIN_RELAY_TX_FEE, fee);
+    let fee = new Decimal(FEE_PER_KB).times(estimatedSize.dividedBy(1000).ceil());
+    fee = Decimal.min(FEERATE_MAX_DYNAMIC, fee);
+    fee = Decimal.max(MIN_RELAY_TX_FEE, fee);
     return fee;
   }
 
   getFee() {
     if (!isUndefined(this.fee)) {
-      return this.fee;
+      return new Decimal(this.fee);
     }
 
     return this.estimatedFee();
@@ -264,7 +266,7 @@ export default class Transaction {
 
   setFee(fee) {
     this.fee = valueFromUser(fee);
-    if (this.fee < MIN_RELAY_TX_FEE) {
+    if (this.fee.lessThan(MIN_RELAY_TX_FEE)) {
       throw new TPayError(ERROR_MESSAGES.invalidFeeAmount.format(valueForUser(MIN_RELAY_TX_FEE)));
     }
     return this;
@@ -276,7 +278,7 @@ export default class Transaction {
       nLocktime: this.nLocktime,
       inputs: this.inputs.map(input => input.toObject()),
       outputs: this.outputs.map(output => output.toObject()),
-      fee: this.fee,
+      fee: this.fee.toNumber(),
       version: this.version,
       oChangeTo: this.oChangeTo
     };

@@ -143,7 +143,7 @@ export default class Input {
       address: this.address,
       vout: this.prevoutN,
       txid: this.prevoutHash,
-      value: valueForUser(this.value),
+      value: valueForUser(this.value).toNumber(),
       pubkeys: this.pubkeys,
       redeemScript: this.redeemScript,
       sequence: this.sequence,
