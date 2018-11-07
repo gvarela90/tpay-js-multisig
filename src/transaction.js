@@ -118,14 +118,14 @@ export default class Transaction {
     }
 
     const fee = this.getFee();
-    const changeAmount = unspendValue - fee;
-    if (changeAmount < 0) {
+    const changeAmount = unspendValue.minus(fee);
+    if (changeAmount.lessThan(0)) {
       throw new TPayError(`${ERROR_MESSAGES.notFunds}. \nFEE=${fee} \nUNSPENTVALUE=${unspendValue} \nMISSING=${Math.abs(changeAmount)}`);
     }
   }
 
   checkOutputsTotal() {
-    if (Transaction.getTotal(this.outputs) < MIN_TXOUT_AMOUNT) {
+    if (Transaction.getTotal(this.outputs).lessThan(MIN_TXOUT_AMOUNT)) {
       throw new TPayError(ERROR_MESSAGES.valueTooSmall.format(MIN_TXOUT_AMOUNT));
     }
   }
